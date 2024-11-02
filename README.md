@@ -1,66 +1,117 @@
-## Foundry
+# DAO Governance Project
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## Overview
+This project implements a complete DAO governance system using Solidity smart contracts. It enables decentralized decision-making through a governance token, voting mechanisms, and time-locked execution of proposals.
 
-Foundry consists of:
+## Project Structure
+```
+.
+├── .github/workflows
+├── lib
+│   └── openzeppelin-contracts
+├── src
+│   ├── DAOGovernanceContract.sol
+│   ├── RetrievableNumber.sol
+│   ├── TimeLockContract.sol
+│   └── VotingToken.sol
+├── .gitignore
+├── .gitmodules
+├── README.md
+└── foundry.toml
+```
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+## Smart Contracts
 
-## Documentation
+### DAOGovernanceContract
+The main governance contract that inherits from OpenZeppelin's Governor modules. Features include:
+* Voting delay of 7200 blocks (approximately 1 day)
+* Voting period of 50400 blocks (approximately 1 week)
+* 4% quorum requirement
+* Time-locked execution of passed proposals
+* Simple majority voting system
 
-https://book.getfoundry.sh/
+### RetrievableNumber
+A simple contract for storing and retrieving numbers that can be controlled by governance:
+* Stores a single number value
+* Emits events when the number changes
+* Includes retrieval functionality
+
+### TimeLockContract
+Implements time-delayed execution of governance decisions:
+* Customizable minimum delay
+* Configurable proposers and executors
+* Admin management functionality
+
+### VotingToken (VTK)
+An ERC20 token with governance capabilities:
+* Implements ERC20Votes for governance functionality
+* Includes ERC20Permit for gasless approvals
+* Tracks voting power and delegation
+
+## Setup and Installation
+This project uses Foundry for Ethereum development.
+
+1. Install Foundry:
+```bash
+curl -L https://foundry.paradigm.xyz | bash
+foundryup
+```
+
+2. Clone the repository:
+```bash
+git clone <your-repository-url>
+cd dao-governance
+```
+
+3. Install dependencies:
+```bash
+forge install
+```
+
+## Building and Testing
+
+### Build the project:
+```bash
+forge build
+```
+
+### Run tests:
+```bash
+forge test
+```
+
+## Deployment
+To deploy the contracts in sequence (replace placeholders with actual values):
+
+```bash
+# 1. Deploy VotingToken
+forge create src/VotingToken.sol:VotingToken --rpc-url <YOUR_RPC_URL> --private-key <YOUR_PRIVATE_KEY>
+
+# 2. Deploy TimeLockContract
+forge create src/TimeLockContract.sol:TimeLockContract --rpc-url <YOUR_RPC_URL> --private-key <YOUR_PRIVATE_KEY> --constructor-args <MIN_DELAY> <PROPOSERS_ARRAY> <EXECUTORS_ARRAY>
+
+# 3. Deploy DAOGovernanceContract
+forge create src/DAOGovernanceContract.sol:DAOGovernanceContract --rpc-url <YOUR_RPC_URL> --private-key <YOUR_PRIVATE_KEY> --constructor-args <VOTING_TOKEN_ADDRESS> <TIMELOCK_ADDRESS>
+```
 
 ## Usage
 
-### Build
+### Creating a Proposal
+To create a proposal, interact with the DAOGovernanceContract using a tool like cast:
 
-```shell
-$ forge build
+```bash
+cast send <GOVERNANCE_CONTRACT_ADDRESS> "propose(address[],uint256[],bytes[],string)" <TARGETS> <VALUES> <CALLDATAS> <DESCRIPTION> --rpc-url <YOUR_RPC_URL> --private-key <YOUR_PRIVATE_KEY>
 ```
 
-### Test
+### Voting on Proposals
+Token holders can vote on active proposals:
 
-```shell
-$ forge test
+```bash
+cast send <GOVERNANCE_CONTRACT_ADDRESS> "castVote(uint256,uint8)" <PROPOSAL_ID> <VOTE> --rpc-url <YOUR_RPC_URL> --private-key <YOUR_PRIVATE_KEY>
 ```
 
-### Format
+## Contributing
+Contributions are welcome. Please open an issue or submit a pull request.
 
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+## License
+This project is licensed under the MIT License.
